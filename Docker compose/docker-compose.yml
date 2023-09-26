@@ -1,0 +1,149 @@
+---
+# ----------------------------------------------------------------------------------------
+version: "3.6"
+volumes:
+  shared-workspace:
+    name: "hadoop-distributed-file-system"
+    driver: local
+services:
+  jupyterlab:
+    image: pavansrivathsa/jupyterlab
+    hostname: JUPYTERLAB
+    container_name: jupyterlab
+    ports:
+      - 4888:4888
+      - 4040:4040
+      - 8050:8050
+    volumes:
+      - shared-workspace:/opt/workspace
+  spark-master:
+    image: pavansrivathsa/spark-master
+    hostname: SPARK-MASTER
+    container_name: spark-master
+    healthcheck:
+      interval: 5s
+      retries: 100
+    ports:
+      - 4080:4080
+      - 3077:3077
+    environment:
+      - INIT_DAEMON_STEP=false
+      - SPARK_DRIVER_HOST=192.168.1.5
+      - "SPARK_LOCAL_IP=spark-master"
+      - "SPARK_MASTER_PORT=3077"
+      - "SPARK_MASTER_WEBUI_PORT=4080"
+    volumes:
+      - shared-workspace:/opt/workspace
+      
+  spark-worker-1:
+    image: pavansrivathsa/spark-worker
+    container_name: spark-worker-1
+    ports:
+      - 4081:4081
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
+      - "SPARK_MASTER=spark://spark-master:3077"
+      - "SPARK_WORKER_WEBUI_PORT=4081"
+    volumes:
+      - shared-workspace:/opt/workspace
+    depends_on:
+      - spark-master
+  spark-worker-2:
+    image: pavansrivathsa/spark-worker
+    container_name: spark-worker-2
+    ports:
+      - 4082:4081
+    environment:
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
+      - "SPARK_MASTER=spark://spark-master:3077"
+      - "SPARK_WORKER_WEBUI_PORT=4082"
+    volumes:
+      - shared-workspace:/opt/workspace
+    depends_on:
+      - spark-master
+  zookeeper:  # the configuration manager
+    hostname: ZOOKEEPER
+    container_name: zookeeper
+    image: 'bitnami/zookeeper'
+    ports:
+      - 2181:2181
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    hostname: KAFKA
+    container_name: kafka
+    image: wurstmeister/kafka:2.12-2.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://localhost:29092,EXTERNAL://${DOCKER_HOST_IP}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  nifi:
+    hostname: NiFi
+    container_name: nifi
+    image: pavansrivathsa/nifi
+    ports:
+      - 2080:2080
+    environment:
+      - NIFI_WEB_HTTP_PORT=2080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=2084
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=1 min
+    volumes:
+      - shared-workspace:/opt/workspace/nifi
+
+  cassandra:
+    image: 'bitnami/cassandra:latest'
+    hostname: CASSANDRA
+    ports:
+      - "9042:9042"
+    environment:
+      - "MAX_HEAP_SIZE=256M"
+      - "HEAP_NEWSIZE=128M"
+    container_name: cassandra
+    volumes:
+      - shared-workspace:/opt/cassandra/schema.cql
+
+  namenode:
+    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    container_name: namenode
+    hostname: NAMENODE
+    volumes:
+    - shared-workspace:/opt/workspace/hadoop/dfs/name
+    environment:
+    - CLUSTER_NAME=test
+    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    healthcheck:
+      interval: 5s
+      retries: 100
+    ports:
+    - 50070:50070
+    - 8020:8020
+
+  datanode:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    container_name: datanode
+    hostname: DATANODE
+    volumes:
+    - shared-workspace:/opt/workspace/hadoop/dfs/data
+    environment:
+    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    depends_on:
+      - namenode
+    healthcheck:
+      interval: 5s
+      retries: 100
+    ports:
+     - 50075:50075
+     - 50010:50010
+...
