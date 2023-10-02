@@ -1,2 +1,0 @@
-SSH to EC2:
-run command : 

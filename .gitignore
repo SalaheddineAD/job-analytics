@@ -1,1 +1,4 @@
 EC2-credentials/
+Jupyter Notebooks/log_listener.ipynb
+Jupyter Notebooks/log_preprocessing.ipynb
+Jupyter Notebooks/log_visualizer.ipynb
