@@ -1,9 +1,10 @@
 # LinkedIn Job Analysis Pipeline
 
 ## Overview
-This repository details a sophisticated job analysis pipeline, which includes a custom-built scraper for LinkedIn job postings. The scraper and the entire data pipeline are deployed on AWS EC2 instances, ensuring scalable and reliable data processing.
+This repository details a sophisticated job analysis pipeline, which includes a custom-built scraper for LinkedIn job postings. The scraper and the entire data pipeline are deployed on AWS EC2 and ECS instances, ensuring scalable and reliable data processing.
 
-![LinkedIn Job Analysis Pipeline Architecture](https://github.com/SalaheddineAD/job-analytics/assets/93080778/5e3d675e-4ebd-4da8-a74e-d6e2e9039074)
+![LinkedIn Job Analysis Pipeline Architecture](https://github.com/SalaheddineAD/job-analytics/assets/93080778/b1724277-4c11-49a3-97fb-ca71ad88a7d2)
+
 
 ## Technologies
 - **Python & Scrapy**: Crafted a scraper to extract job listings from LinkedIn.
