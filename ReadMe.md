@@ -38,8 +38,12 @@ This repository details a sophisticated job analysis pipeline, which includes a 
 - Launch an X-Large EC2 instance on AWS.
 
 ## Step 2: Connect to EC2 Instance
-
 - Use SSH to connect to your EC2 instance.
+
+  
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/9cea38ac-db28-4ea8-9109-598e1b4883c3)
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/aa28c7f9-b38c-4374-956b-b40422d57c4a)
+
 
 ## Step 3: Copy `docker-compose.yml` to EC2
 
@@ -55,16 +59,21 @@ scp -i /path/to/your/keypair.pem <path/to/local/docker-compose.yml> ec2-user@<yo
 ec2-user: The default user for Amazon Linux instances. Use the appropriate username for your AMI.
 - <**your-ec2-instance-ip**> Replace with the public IP address or hostname of your EC2 instance.
 - **:/path/on/ec2/docker-compose.yml**: Specify the path where you want to copy the file on the EC2 instance.
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/2fde93b2-1f80-47e6-b405-e5ae2a2f23d2)
 
 ## Step4: Updates all installed packages and their dependencies
 On a Linux system you can use the Yum package manager with this command: 
 ```bash
 sudo yum update -y
 ```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/7088fbde-acfd-4bee-9e12-6f1aa914b8d2)
+
 ## Step5: Install Docker
 ```bash
 sudo yum install docker
 ```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/a1e26d17-b35a-46d3-a05e-39e2be48b14c)
+
 ## Step6: Install Docker Compose and sett permissions
 ```bash
 sudo curl -L https://https://github.com/docker/compose/releases/Latest/download/docker-compose-$(uname -s)-$(uname -m) -o /user/local/bin/docker-compose
@@ -76,6 +85,7 @@ Specifically:
   - **$(uname -s)** : prints the name of the operating system. So on Linux this would print "Linux", on MacOS it would print "Darwin". This allows picking the right OS binary.
   - **$(uname -m)**: prints the system architecture. For example "x86_64" on 64-bit Intel/AMD systems. This allows picking the right architecture binary.
   - **-o**: allows you to specify where you want to store the file you downloaded
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/a7f17128-f9b3-4fb4-9f3c-16ec1ae672be)
 
 
 Set permission with the command below:
@@ -86,6 +96,7 @@ Make sure it works with this command:
 ```bash
 sudo sudo chmod +x /usr/local/bin/docker-compose
 ```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/474e1cd5-9a50-4b81-bc18-370cb52fa76f)
 
 ## Step 7: Use docker compose up to pull images and run containers
 ```bash
@@ -101,11 +112,13 @@ Create Kafka topic:
 ```bash
 Kafka-topic.sh --create --topic your-topic-name –partitions 1 –replication-factor 1 –if-not-exists –zookeeper zookeeper:2181
 ```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/5c224032-a868-495f-b3da-3904aff734fd)
 
 When you set your producer and send messages. If you want to check if the messages are indeed sent you can use the command:
 ```bash
 kafka-console-consumer.sh --topic your_topic_name --bootstrap-server localhost:9092 --from-beginning
 ```
+
 
 ## Step 9: Create Cassandra keyspace and table
 Go to Cassandra terminal using:
@@ -121,18 +134,25 @@ create keyspace
 ```bash
 CREATE KEYSPACE IF NOT EXISTS jobs_analytics WITH replication =  {'class': 'SimpleStrategy', 'replication_factor': 1}
 ```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/f2a8065c-04d0-4b85-b191-84bf0154364b)
 
-CREATE TABLE IF NOT EXIST jobs_analytics.job
+
+CREATE TABLE jobs_analytics.job
 
 ```bash
 CREATE TABLE IF NOT EXISTS jobs_analytics.job (title Text, company_name Text, job_date Date, job_link Text, job_location Text, job_seniority_level Text, job_employment_type Text, job_function Text, job_industries Text, number_applicants int, job_description Text, Primary key ((job_date, job_seniority_level, job_location), company_name, title)); 
 ```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/c82c7e06-7934-47b4-9142-cf703e496026)
 
 ## Step 10: Create a folder in hdfs:
-
+```bash
 Docker exec -i -t  namenode bash 
-
+```
+```bash
 hdfs dfs -mkdir -p output1/scraped_jobs/
+```
+![image](https://github.com/SalaheddineAD/job-analytics/assets/93080778/4427a6a2-75ff-4a3a-8109-9df76b900392)
+
 
 ## Congraats!
 Now your pipeline is almost ready. 
